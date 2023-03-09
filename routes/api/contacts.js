@@ -5,6 +5,7 @@ const {
   putValidation,
   patchValidation,
 } = require("../../middlewares/validation");
+const { checkToken } = require("../../middlewares/checkToken");
 const {
   getContactsController,
   getContactByIdController,
@@ -15,7 +16,7 @@ const {
 } = require("../../controllers/contactsController");
 
 const router = express.Router();
-
+router.use(checkToken);
 router.get("/", errorHandler(getContactsController));
 
 router.get("/:contactId", errorHandler(getContactByIdController));
