@@ -1,13 +1,19 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("./schemas/user");
+const gravatar = require("gravatar");
+const path = require("path");
+const fs = require("fs/promises");
 const { UnauthorizedError, ConflictError } = require("../helpers/errorHandler");
+const resizeImg = require("../helpers/resizeImg");
 
 const registration = async (email, password, subscription) => {
   try {
+    const avatarURL = gravatar.url(email);
     const user = new User({
       email,
       password,
+      avatarURL,
       subscription,
     });
 
@@ -52,11 +58,24 @@ const changeSubscription = async (id, subscription) => {
   );
   return user.subscription;
 };
-
+const changeAvatar = async (req, _id) => {
+  await resizeImg(req);
+  const filename = `${_id}_${req.file.originalname}`;
+  const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+  const resultUpload = path.join(avatarsDir, filename);
+  await fs.rename(
+    path.join(__dirname, "../", "tmp", req.file.originalname),
+    resultUpload
+  );
+  const avatarURL = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatarURL });
+  return avatarURL;
+};
 module.exports = {
   registration,
   login,
   logout,
   currentUser,
   changeSubscription,
+  changeAvatar,
 };
