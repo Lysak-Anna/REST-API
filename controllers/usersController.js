@@ -1,15 +1,19 @@
 const { SubscriptionError } = require("../helpers/errorHandler");
+
 const {
   registration,
   login,
   logout,
   currentUser,
   changeSubscription,
+  changeAvatar,
 } = require("../service/userService");
 
 const registrationController = async (req, res) => {
   const { email, password, subscription = "starter" } = req.body;
+
   await registration(email, password, subscription);
+
   res.json({
     code: 201,
     status: "Created",
@@ -71,10 +75,21 @@ const changeSubscriptionController = async (req, res) => {
     newSubcr,
   });
 };
+const changeAvatarController = async (req, res) => {
+  const { _id } = req.user;
+  const avatarUrl = await changeAvatar(req, _id);
+
+  res.json({
+    code: 200,
+    status: "OK",
+    avatarUrl,
+  });
+};
 module.exports = {
   registrationController,
   loginController,
   logoutController,
   currentUserController,
   changeSubscriptionController,
+  changeAvatarController,
 };
