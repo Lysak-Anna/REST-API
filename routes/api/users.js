@@ -11,6 +11,7 @@ const {
   currentUserController,
   changeSubscriptionController,
   changeAvatarController,
+  verifyController,
 } = require("../../controllers/usersController");
 
 const router = express.Router();
@@ -30,4 +31,5 @@ router.patch(
   multerMiddleware.single("avatar"),
   errorHandler(changeAvatarController)
 );
+router.get("/verify/:verificationToken", errorHandler(verifyController));
 module.exports = router;

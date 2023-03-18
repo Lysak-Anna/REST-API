@@ -1,4 +1,5 @@
 const { SubscriptionError } = require("../helpers/errorHandler");
+const sgMail = require("@sendgrid/mail");
 
 const {
   registration,
@@ -7,12 +8,13 @@ const {
   currentUser,
   changeSubscription,
   changeAvatar,
+  verify,
 } = require("../service/userService");
 
 const registrationController = async (req, res) => {
   const { email, password, subscription = "starter" } = req.body;
 
-  await registration(email, password, subscription);
+  const verificationToken = await registration(email, password, subscription);
 
   res.json({
     code: 201,
@@ -22,6 +24,23 @@ const registrationController = async (req, res) => {
       subscription,
     },
   });
+
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const msg = {
+    to: email, // Change to your recipient
+    from: process.env.EMAIL, // Change to your verified sender
+    subject: "Please, confirm your email",
+    // text: `http://:3000/api/users/verify/${verificationToken}`,
+    html: `<a href="https:localhost:${process.env.PORT}/api/users/verify/${verificationToken}">Confirm<a/>`,
+  };
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log("Email sent");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 };
 
 const loginController = async (req, res) => {
@@ -85,6 +104,15 @@ const changeAvatarController = async (req, res) => {
     avatarUrl,
   });
 };
+const verifyController = async (req, res) => {
+  const { verifyToken } = req.params;
+  await verify(verifyToken);
+  res.json({
+    code: 200,
+    status: "OK",
+    message: "Verification successful",
+  });
+};
 module.exports = {
   registrationController,
   loginController,
@@ -92,4 +120,5 @@ module.exports = {
   currentUserController,
   changeSubscriptionController,
   changeAvatarController,
+  verifyController,
 };

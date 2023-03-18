@@ -1,10 +1,15 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 const User = require("./schemas/user");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
-const { UnauthorizedError, ConflictError } = require("../helpers/errorHandler");
+const {
+  UnauthorizedError,
+  ConflictError,
+  NotFoundError,
+} = require("../helpers/errorHandler");
 const resizeImg = require("../helpers/resizeImg");
 
 const registration = async (email, password, subscription) => {
@@ -15,9 +20,11 @@ const registration = async (email, password, subscription) => {
       password,
       avatarURL,
       subscription,
+      verificationToken: uuidv4(),
     });
 
     await user.save();
+    return user.verificationToken;
   } catch (error) {
     throw new ConflictError();
   }
@@ -71,6 +78,16 @@ const changeAvatar = async (req, _id) => {
   await User.findByIdAndUpdate(_id, { avatarURL });
   return avatarURL;
 };
+const verify = async (verifyToken) => {
+  const user = await User.findOne({ verificationToken: verifyToken });
+  if (!user) {
+    throw new NotFoundError();
+  }
+  await User.findOneAndUpdate(
+    { verificationToken: verifyToken },
+    { verificationToken: null, verify: true }
+  );
+};
 module.exports = {
   registration,
   login,
@@ -78,4 +95,5 @@ module.exports = {
   currentUser,
   changeSubscription,
   changeAvatar,
+  verify,
 };

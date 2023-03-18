@@ -27,9 +27,18 @@ class SubscriptionError extends Error {
     this.message = "Subscription must be one of: starter, pro, business";
   }
 }
+class NotFoundError extends Error {
+  constructor() {
+    super();
+    this.code = 404;
+    this.status = "Not Found";
+    this.message = "User not found";
+  }
+}
 module.exports = {
   errorHandler,
   UnauthorizedError,
   ConflictError,
   SubscriptionError,
+  NotFoundError,
 };
