@@ -9,6 +9,7 @@ const {
   UnauthorizedError,
   ConflictError,
   NotFoundError,
+  VerifyError,
 } = require("../helpers/errorHandler");
 const resizeImg = require("../helpers/resizeImg");
 
@@ -31,7 +32,7 @@ const registration = async (email, password, subscription) => {
 };
 
 const login = async (email, password) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email, verify: true });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw new UnauthorizedError("Email or password is wrong");
   }
@@ -78,15 +79,25 @@ const changeAvatar = async (req, _id) => {
   await User.findByIdAndUpdate(_id, { avatarURL });
   return avatarURL;
 };
-const verify = async (verifyToken) => {
-  const user = await User.findOne({ verificationToken: verifyToken });
+const verify = async (verificationToken) => {
+  const user = await User.findOneAndUpdate(
+    { verificationToken },
+    { verificationToken: null, verify: true },
+    { new: true }
+  );
   if (!user) {
     throw new NotFoundError();
   }
-  await User.findOneAndUpdate(
-    { verificationToken: verifyToken },
-    { verificationToken: null, verify: true }
-  );
+};
+const repeatedVerify = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user.email) {
+    throw new NotFoundError();
+  }
+  if (user.verify === true) {
+    throw new VerifyError();
+  }
+  return user;
 };
 module.exports = {
   registration,
@@ -96,4 +107,5 @@ module.exports = {
   changeSubscription,
   changeAvatar,
   verify,
+  repeatedVerify,
 };

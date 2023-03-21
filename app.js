@@ -8,6 +8,7 @@ const {
   ConflictError,
   SubscriptionError,
   NotFoundError,
+  VerifyError,
 } = require("./helpers/errorHandler");
 
 const app = express();
@@ -30,7 +31,8 @@ app.use((err, req, res, next) => {
     err instanceof UnauthorizedError ||
     err instanceof ConflictError ||
     err instanceof SubscriptionError ||
-    err instanceof NotFoundError
+    err instanceof NotFoundError ||
+    err instanceof VerifyError
   ) {
     return res.status(err.code).json({
       status: err.status,

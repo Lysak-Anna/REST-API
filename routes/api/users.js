@@ -2,6 +2,7 @@ const express = require("express");
 
 const { errorHandler } = require("../../helpers/errorHandler");
 const { validateUserData } = require("../../middlewares/userDataValidation");
+const { validateRequiredEmail } = require("../../middlewares/validation");
 const { checkToken } = require("../../middlewares/checkToken");
 const multerMiddleware = require("../../middlewares/multerMiddleware");
 const {
@@ -12,6 +13,7 @@ const {
   changeSubscriptionController,
   changeAvatarController,
   verifyController,
+  repeatedVerifyController,
 } = require("../../controllers/usersController");
 
 const router = express.Router();
@@ -32,4 +34,9 @@ router.patch(
   errorHandler(changeAvatarController)
 );
 router.get("/verify/:verificationToken", errorHandler(verifyController));
+router.post(
+  "/verify",
+  validateRequiredEmail,
+  errorHandler(repeatedVerifyController)
+);
 module.exports = router;

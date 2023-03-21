@@ -35,10 +35,19 @@ class NotFoundError extends Error {
     this.message = "User not found";
   }
 }
+class VerifyError extends Error {
+  constructor() {
+    super();
+    this.code = 400;
+    this.status = "Bad Request";
+    this.message = "Verification has already been passed";
+  }
+}
 module.exports = {
   errorHandler,
   UnauthorizedError,
   ConflictError,
   SubscriptionError,
   NotFoundError,
+  VerifyError,
 };
