@@ -18,6 +18,14 @@ const user = new Schema({
     default: "starter",
   },
   token: String,
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, "Verify token is required"],
+  },
 });
 user.pre("save", async function () {
   if (this.isNew) {

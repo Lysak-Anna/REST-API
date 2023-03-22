@@ -45,7 +45,21 @@ function validateOneField(req, res) {
     });
   }
 }
+function validateRequiredEmail(req, res, next) {
+  const requiredField = Joi.object({
+    email: Joi.required(),
+  });
+  const field = requiredField.validate(req.body);
+  if (field.error) {
+    return res.json({
+      code: 400,
+      message: "missing required field email",
+    });
+  }
+  next();
+}
 module.exports = {
+  validateRequiredEmail,
   postValidation: (req, res, next) => {
     validateRequiredField(req, res);
     validateIncomeData(req, res);

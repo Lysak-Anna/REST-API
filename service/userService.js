@@ -1,10 +1,16 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 const User = require("./schemas/user");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs/promises");
-const { UnauthorizedError, ConflictError } = require("../helpers/errorHandler");
+const {
+  UnauthorizedError,
+  ConflictError,
+  NotFoundError,
+  VerifyError,
+} = require("../helpers/errorHandler");
 const resizeImg = require("../helpers/resizeImg");
 
 const registration = async (email, password, subscription) => {
@@ -15,16 +21,18 @@ const registration = async (email, password, subscription) => {
       password,
       avatarURL,
       subscription,
+      verificationToken: uuidv4(),
     });
 
     await user.save();
+    return user.verificationToken;
   } catch (error) {
     throw new ConflictError();
   }
 };
 
 const login = async (email, password) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email, verify: true });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw new UnauthorizedError("Email or password is wrong");
   }
@@ -71,6 +79,26 @@ const changeAvatar = async (req, _id) => {
   await User.findByIdAndUpdate(_id, { avatarURL });
   return avatarURL;
 };
+const verify = async (verificationToken) => {
+  const user = await User.findOneAndUpdate(
+    { verificationToken },
+    { verificationToken: null, verify: true },
+    { new: true }
+  );
+  if (!user) {
+    throw new NotFoundError();
+  }
+};
+const repeatedVerify = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user.email) {
+    throw new NotFoundError();
+  }
+  if (user.verify === true) {
+    throw new VerifyError();
+  }
+  return user;
+};
 module.exports = {
   registration,
   login,
@@ -78,4 +106,6 @@ module.exports = {
   currentUser,
   changeSubscription,
   changeAvatar,
+  verify,
+  repeatedVerify,
 };
