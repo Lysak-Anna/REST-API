@@ -31,7 +31,7 @@ const registrationController = async (req, res) => {
     to: email,
     from: process.env.EMAIL,
     subject: "Please, confirm your email",
-    html: `<a href="https:localhost:${process.env.PORT}/api/users/verify/${verificationToken}">Confirm<a/>`,
+    html: `<a href="${process.env.HOST}:${process.env.PORT}/api/users/verify/${verificationToken}">Confirm<a/>`,
   };
   sgMail
     .send(msg)
@@ -122,7 +122,7 @@ const repeatedVerifyController = async (req, res) => {
     to: email,
     from: process.env.EMAIL,
     subject: "Please, confirm your email",
-    html: `<a href="https:localhost:${process.env.PORT}/api/users/verify/${user.verificationToken}">Confirm<a/>`,
+    html: `<a href="${process.env.HOST}:${process.env.PORT}/api/users/verify/${user.verificationToken}">Confirm<a/>`,
   };
   sgMail
     .send(msg)
